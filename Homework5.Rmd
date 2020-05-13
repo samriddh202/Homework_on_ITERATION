@@ -1,0 +1,274 @@
+---
+title: "Assignment5"
+author: "Samriddh Gupta"
+output:
+  word_document: default
+  pdf_document: default
+  html_notebook: default
+---
+
+
+
+
+
+All the packages
+```{r}
+library(tidyverse)
+library(tidyverse)
+library(purrr)
+library(ggplot2)
+library(dplyr)
+options(java.parameters = "-Xmx2048m")
+library("xlsx")
+library("openxlsx")
+require(data.table)
+library(tidyr)
+
+```
+
+
+1.	Write for loops to:
+a)	Compute the mean of every column in mtcars. 
+
+```{r}
+data<-mtcars
+
+output<-double()
+for (i in seq_along(data)) {
+  output<-c(output,mean(data[[i]]))
+}
+output
+
+
+```
+b)	Determine the type of each column in nycflights13::flights.
+
+```{r}
+data<-nycflights13::flights
+output<-character()
+for (i in seq_along(data)) {
+  output<-c(output,typeof(data[[i]]))
+}
+output
+```
+
+c)	Compute the number of unique values in each column of iris.
+```{r}
+data<-iris
+output<-character()
+for (i in seq_along(data)) {
+  output<-c(output,length(unique(data[[i]])))
+}
+output
+
+
+
+
+#iris %>% map_int(function(x) length(unique(x)))
+```
+
+d)	Generate 10 random normals for each of μ = −10, 0, 10, and 100.
+```{r}
+means<-c(-10,0,10,100)
+out <- vector("list", length(means))
+for (i in seq_along(means)) {
+  n <- 10
+  out[[i]] <- rnorm(n, means[[i]])
+}
+str(out)
+```
+
+2.	Eliminate the for loop in each of the following examples by taking advantage of an existing function that works with vectors:
+  out <- ""
+  for (x in letters) {
+    out <- stringr::str_c(out, x)
+  }
+
+  x <- sample(100)
+  sd <- 0
+  for (i in seq_along(x)) {
+    sd <- sd + (x[i] - mean(x)) ^ 2
+  }
+  sd <- sqrt(sd / (length(x) - 1))
+
+  x <- runif(100)
+  out <- vector("numeric", length(x))
+  out[1] <- x[1]
+  for (i in 2:length(x)) {
+    out[i] <- out[i - 1] + x[i]
+          }
+
+```{r}
+## First part
+
+alpha<-character()
+alpha<-letters
+
+
+x <- sample(100)
+sd <- 0
+
+sd<-sd(x)
+
+
+x <- runif(100)
+out <- vector("numeric", length(x))
+out[1] <- x[1]
+for (i in 2:length(x)) {
+  out[i] <- out[i - 1] + x[i]
+}
+
+```
+
+3. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.  You may assume that all csv files contain the same variables and formats.  Test your code by downloading the stock price .csv files from the data folder on blackboard and then print out rows 50,000 to 50,015.
+
+```{r}
+all_csv<-dir("data/",pattern = "\\.csv$",full.names = TRUE)
+all_csv
+all_dfs <- vector("list")
+for (i in seq_along(all_csv)) {
+  all_dfs[[i]] <- read_csv(all_csv[[i]])
+}
+bind_rows(all_dfs)
+
+all_dfs[50000:50015]
+```
+
+3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
+show_mean(iris)
+#> Sepal.Length: 5.84
+#> Sepal.Width:  3.06
+#> Petal.Length: 3.76
+#> Petal.Width:  1.20
+
+
+```{r}
+show_means <- function(x) {
+  
+  the_class <- vector("logical", length(x))
+  for (i in seq_along(x)) 
+    the_class[[i]] <- is.numeric(x[[i]])
+  
+  x <- x[the_class]
+  
+  for (i in seq_along(x)) {
+    cat(paste0(names(x)[i], ": ", round(mean(x[[i]]), 2)), fill = TRUE)
+  }
+}
+show_means(iris)
+
+```
+
+2. Adapt col_summary() so that it only applies to numeric columns . You may want to look at the purrr function keep.  Test your function by computing the median on the flights dataframe.
+
+```{r}
+col_summary <- function(x) {
+  
+  the_numeric <- vector("logical", length(x))
+  for (i in seq_along(x)) 
+    the_numeric[[i]] <- is.numeric(x[[i]])
+  
+  x <- x[the_numeric]
+  
+  the_mean <- vector("numeric", length(x))
+  for (i in seq_along(x)) 
+    cat(paste0(names(x)[i], ": ", round(mean(x[[i]]), 2)), fill = TRUE)
+}
+col_summary(nycflights13::flights)
+```
+
+1.	Write code that uses one of the map functions to:
+a)	Compute the mean of every column in mtcars. 
+
+```{r}
+
+map_dbl(mtcars, mean)
+```
+
+b)	Determine the type of each column in nycflights13::flights.
+```{r}
+map(nycflights13::flights, class)
+```
+
+c)	Compute the number of unique values in each column of iris.
+```{r}
+map(iris, ~ length(unique(.)))
+```
+
+d)	Generate 10 random normals for each of μ = −10, 0, 10, and 100.
+```{r}
+map(c(-10, 0, 10, 100), rnorm, n = 10)
+```
+
+2.	How can you create a single vector that for each column in a data frame indicates whether or not it’s a factor? Test on the diamonds dataset.
+
+```{r}
+
+data(diamonds)
+map_lgl(diamonds, is.factor)
+```
+
+
+1. Write code to generate 6 random numbers from a normal distribution with mean of 3 and standard deviation of 0.2, 10 random numbers from a uniform distribution from 2 to 5, and 12 random numbers from a poisson distribution with a lambda of 3.5.  Set your seed to 613 at the beginning. 
+
+```{r}
+set.seed(613)
+out1 <- vector("list",3)
+for (i in seq_along(length(out1))) {
+   out1[[i]]<-rnorm(6,3,0.2)
+   i=i+1
+   out1[[i]]<-runif(10,2,5)
+   i=i+1
+   out1[[i]]<-rpois(12,3.5)
+
+}
+str(out1)
+```
+
+2. Combine the following datasets from Lahman:  Master, Salaries, AwardsPlayers, Batting and BattingPost
+```{r}
+library(Lahman)
+
+d1<-merge(Master,Salaries)
+d2<-merge(d1,AwardsPlayers)
+d3<-merge(d2,Batting)
+d4<-merge(d3,BattingPost)
+
+```
+
+Extra Credit (5 pts)
+Download the stock price .xlsx files from Blackboard to your data subfolder. Read in the "dividends" sheet from all .xlxs files in the data folder, add the company symbol from the filename as a new variable called Symbol and combine the data from the excel spreadsheets into one large tibble.  Then tidy the data so the head looks like:
+
+```{r}
+
+
+## Getting the files
+all_xlsx<-dir("data/",pattern = "\\.xlsx$",full.names = TRUE)
+all_xlsx
+
+## adding the all files together
+all_dfs <- vector("list")
+for (i in seq_along(all_xlsx)) {
+  all_dfs[[i]] <- readxl::read_xlsx(all_xlsx[i],sheet = "dividends")
+}
+bind_rows(all_dfs)
+## getting the names of the files
+all_filenames <- all_xlsx %>%
+  basename() %>%
+  as.list()
+
+## combining the two tables
+all_lists <- mapply(c, all_dfs, all_filenames, SIMPLIFY = FALSE)
+all_result <- rbindlist(all_lists, fill = T)
+names(all_result)[6] <- "Symbol"
+#all_result
+all_result$Symbol=str_remove_all(all_result$Symbol,".xlsx")
+all_result$Dividends=round(all_result$Dividends,digits = 2)
+all_result %>% 
+  pivot_longer(c(Ex_Div,Pay_date,Declared,Record),names_to = "Event", values_to = "Date")
+  
+
+
+```
+
+
